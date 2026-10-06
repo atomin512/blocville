@@ -6,9 +6,10 @@ pub enum TileType {
     Residential,
 }
 
+#[derive(Clone)]
 pub struct Grid {
-    pub width: usize,
-    pub height: usize,
+    width: usize,
+    height: usize,
     pub types: Vec<TileType>,
     pub pollutions: Vec<u8>,
 }
@@ -55,26 +56,13 @@ impl Grid {
             None
         }
     }
-}
 
-pub struct GridDelta {
-    pub width: usize,
-    pub height: usize,
-    pub pollutions: Vec<i8>,
-}
-
-impl GridDelta {
-    pub fn new(width: usize, height: usize) -> Self {
-        let len_of_vector = width * height;
-        Self {
-            width,
-            height,
-            pollutions: vec![0i8; len_of_vector],
-        }
+    pub fn width(&self) -> usize {
+        self.width
     }
 
-    pub fn clear(&mut self) {
-        self.pollutions.fill(0);
+    pub fn height(&self) -> usize {
+        self.height
     }
 
     pub fn apply_8_neighbors_pollution(&mut self, x: usize, y: usize, delta_pollution: i8) {
@@ -83,7 +71,7 @@ impl GridDelta {
             let Some(ny) = y.checked_add_signed(dy) else { continue };
             if nx < self.width && ny < self.height {
                 let idx = ny * self.width + nx;
-                self.pollutions[idx] = self.pollutions[idx].saturating_add(delta_pollution);
+                self.pollutions[idx] = self.pollutions[idx].saturating_add_signed(delta_pollution);
             }
         }
     }
