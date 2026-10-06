@@ -2,15 +2,16 @@ mod config;
 mod grid;
 mod simulation;
 
-use std::time::{Duration, Instant};
+use glam::USizeVec2;
+use std::time::Instant;
 
 fn main() {
     // Creating an empty grid with no pollution
-    let mut world = grid::Grid::new(2048, 2048);
+        let mut world = grid::Grid::new(USizeVec2::new(2048, 2048));
     let mut world_buffer = world.clone();
 
     // Spawning Residential tile at 0:0 coordinates
-    if let Some(t) = world.get_tile_type_mut(0, 0) {
+    if let Some(t) = world.get_tile_type_mut(USizeVec2::new(0, 0)) {
         *t = grid::TileType::Residential;
     }
 

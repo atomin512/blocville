@@ -1,4 +1,5 @@
 use crate::config;
+use glam::USizeVec2;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum TileType {
@@ -6,73 +7,80 @@ pub enum TileType {
     Residential,
 }
 
+#[inline]
+fn checked_offset(pos: USizeVec2, dx: isize, dy: isize) -> Option<USizeVec2> {
+    Some(USizeVec2::new(
+        pos.x.checked_add_signed(dx)?,
+        pos.y.checked_add_signed(dy)?,
+    ))
+}
+
 #[derive(Clone)]
 pub struct Grid {
-    width: usize,
-    height: usize,
+    size: USizeVec2,
     pub types: Vec<TileType>,
     pub pollutions: Vec<u8>,
 }
 
 impl Grid {
-    pub fn new(width: usize, height: usize) -> Self {
-        let len_of_vector = width * height;
+    pub fn new(size: USizeVec2) -> Self {
+        let len = size.x * size.y;
         Self {
-            width,
-            height,
-            types: vec![TileType::Empty; len_of_vector],
-            pollutions: vec![0u8; len_of_vector],
+            size,
+            types: vec![TileType::Empty; len],
+            pollutions: vec![0u8; len],
         }
     }
 
-    pub fn get_tile_pollution(&self, x: usize, y: usize) -> Option<&u8> {
-        if x < self.width && y < self.height {
-            self.pollutions.get(x + y * self.width)
-        } else {
-            None
-        }
+    #[inline]
+    pub fn size(&self) -> USizeVec2 {
+        self.size
     }
 
-    pub fn get_tile_pollution_mut(&mut self, x: usize, y: usize) -> Option<&mut u8> {
-        if x < self.width && y < self.height {
-            self.pollutions.get_mut(x + y * self.width)
-        } else {
-            None
-        }
-    }
-
-    pub fn get_tile_type(&self, x: usize, y: usize) -> Option<&TileType> {
-        if x < self.width && y < self.height {
-            self.types.get(x + y * self.width)
-        } else {
-            None
-        }
-    }
-
-    pub fn get_tile_type_mut(&mut self, x: usize, y: usize) -> Option<&mut TileType> {
-        if x < self.width && y < self.height {
-            self.types.get_mut(x + y * self.width)
-        } else {
-            None
-        }
-    }
-
+    #[inline]
     pub fn width(&self) -> usize {
-        self.width
+        self.size.x
     }
 
+    #[inline]
     pub fn height(&self) -> usize {
-        self.height
+        self.size.y
     }
 
-    pub fn apply_8_neighbors_pollution(&mut self, x: usize, y: usize, delta_pollution: i8) {
+    #[inline]
+    pub fn index(&self, pos: USizeVec2) -> Option<usize> {
+        (pos.x < self.size.x && pos.y < self.size.y)
+            .then(|| pos.y * self.size.x + pos.x)
+    }
+
+    pub fn get_tile_pollution(&self, pos: USizeVec2) -> Option<&u8> {
+        self.index(pos).map(|i| &self.pollutions[i])
+    }
+
+    pub fn get_tile_pollution_mut(&mut self, pos: USizeVec2) -> Option<&mut u8> {
+        let i = self.index(pos)?;
+        self.pollutions.get_mut(i)
+    }
+
+    pub fn get_tile_type(&self, pos: USizeVec2) -> Option<&TileType> {
+        self.index(pos).map(|i| &self.types[i])
+    }
+
+    pub fn get_tile_type_mut(&mut self, pos: USizeVec2) -> Option<&mut TileType> {
+        let i = self.index(pos)?;
+        self.types.get_mut(i)
+    }
+
+    pub fn apply_8_neighbors_pollution(&mut self, pos: USizeVec2, delta_pollution: i8) {
         for (dx, dy) in config::OFFSETS_OF_8 {
-            let Some(nx) = x.checked_add_signed(dx) else { continue };
-            let Some(ny) = y.checked_add_signed(dy) else { continue };
-            if nx < self.width && ny < self.height {
-                let idx = ny * self.width + nx;
-                self.pollutions[idx] = self.pollutions[idx].saturating_add_signed(delta_pollution);
-            }
+            let Some(neighbor) = checked_offset(pos, dx, dy) else {
+                continue;
+            };
+            let Some(idx) = self.index(neighbor) else {
+                continue;
+            };
+            self.pollutions[idx] =
+                self.pollutions[idx].saturating_add_signed(delta_pollution);
         }
     }
 }
