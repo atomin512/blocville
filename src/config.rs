@@ -8,7 +8,7 @@ pub const EMPTY_POLLUTION_PER_TICK: i8 = 0;
 // TODO(???): move game to f32 but it's pretty expensive
 // OR
 // Do nothing with it, its works simple
-pub const POLLUTION_SPREAD_THRESHOLD: u8 = 9;
+pub const POLLUTION_SPREAD_THRESHOLD: u8 = 16;
 
 pub const OFFSETS_OF_8: [(isize, isize); 8] = [
     (-1, -1),

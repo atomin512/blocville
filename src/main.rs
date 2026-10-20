@@ -7,7 +7,7 @@ use std::time::Instant;
 
 fn main() {
     // Creating an empty grid with no pollution
-        let mut world = grid::Grid::new(USizeVec2::new(2048, 2048));
+    let mut world = grid::Grid::new(USizeVec2::new(32, 32));
     let mut world_buffer = world.clone();
 
     // Spawning Residential tile at 0:0 coordinates
@@ -16,7 +16,7 @@ fn main() {
     }
 
     let start = Instant::now();
-    for _ in 0..100 {
+    for _ in 0..10000 {
         simulation::tick(&mut world, &mut world_buffer);
     }
     let duration = start.elapsed();

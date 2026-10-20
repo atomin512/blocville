@@ -49,8 +49,7 @@ impl Grid {
 
     #[inline]
     pub fn index(&self, pos: USizeVec2) -> Option<usize> {
-        (pos.x < self.size.x && pos.y < self.size.y)
-            .then(|| pos.y * self.size.x + pos.x)
+        (pos.x < self.size.x && pos.y < self.size.y).then(|| pos.y * self.size.x + pos.x)
     }
 
     pub fn get_tile_pollution(&self, pos: USizeVec2) -> Option<&u8> {
@@ -79,8 +78,7 @@ impl Grid {
             let Some(idx) = self.index(neighbor) else {
                 continue;
             };
-            self.pollutions[idx] =
-                self.pollutions[idx].saturating_add_signed(delta_pollution);
+            self.pollutions[idx] = self.pollutions[idx].saturating_add_signed(delta_pollution);
         }
     }
 }
